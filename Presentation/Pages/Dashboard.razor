@@ -1,9 +1,9 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @using AgroSolutions.Identity.Web.Application.DTOs
 @using AgroSolutions.Identity.Web.Application.Interfaces
 @using AgroSolutions.Identity.Web.Domain.Models
-@using Microsoft.AspNetCore.Authorization
 @inject IPropertiesService PropertiesService
 @inject ITelemetryService TelemetryService
 @inject ISnackbar Snackbar

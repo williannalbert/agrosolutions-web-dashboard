@@ -87,7 +87,7 @@
         {   
             Snackbar.Add("Login realizado com sucesso!", Severity.Success);
 
-            (AuthStateProvider as MockAuthStateProvider)?.NotifyAuthChange();
+            (AuthStateProvider as CustomAuthStateProvider)?.NotifyAuthChange();
 
             NavManager.NavigateTo("/");
         }

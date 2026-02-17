@@ -1,13 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using AgroSolutions.Identity.Web.Presentation.Layout
 @using AgroSolutions.Identity.Web.Presentation.Pages
-
-<CascadingAuthenticationState>
+@using AgroSolutions.Identity.Web.Presentation.Components <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    <RedirectToLogin />
+                    <RedirectToLogin /> 
                 </NotAuthorized>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />

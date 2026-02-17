@@ -16,8 +16,10 @@ builder.Services.AddMudServices();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5000") });
 
 builder.Services.AddScoped<ITelemetryService, TelemetryApiService>();
+builder.Services.AddScoped<IAuthService, AuthServiceMock>();
 builder.Services.AddScoped<IPropertiesService, PropertiesServiceMock>();
+
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped<AuthenticationStateProvider, MockAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
 await builder.Build().RunAsync();

@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace AgroSolutions.Identity.Web.Infrastructure.Auth;
 
-public class MockAuthStateProvider : AuthenticationStateProvider
+public class CustomAuthStateProvider : AuthenticationStateProvider
 {
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
