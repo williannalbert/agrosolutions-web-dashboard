@@ -21,12 +21,12 @@
     <MudCardContent>
         <MudForm @ref="form">
             <MudTextField T="string"
-                          Label="E-mail"
-                          @bind-Value="loginModel.Email"
-                          InputType="InputType.Email"
+                          Label="Usuário ou E-mail"
+                          @bind-Value="identificacao"
+                          InputType="InputType.Text"
                           Variant="Variant.Outlined"
                           Adornment="Adornment.End"
-                          AdornmentIcon="@Icons.Material.Filled.Email"
+                          AdornmentIcon="@Icons.Material.Filled.Person"
                           Class="mb-4"
                           Required="true" />
 
@@ -70,6 +70,7 @@
 </MudCard>
 
 @code {
+    private string identificacao = string.Empty; 
     private LoginRequest loginModel = new();
     private bool loading = false;
     private MudForm form;
@@ -80,6 +81,17 @@
         if (!form.IsValid) return;
 
         loading = true;
+
+        if (identificacao.Contains("@"))
+        {
+            loginModel.Email = identificacao;
+            loginModel.Username = null;
+        }
+        else
+        {
+            loginModel.Username = identificacao;
+            loginModel.Email = null;
+        }
 
         var tokenResponse = await AuthService.LoginAsync(loginModel);
 

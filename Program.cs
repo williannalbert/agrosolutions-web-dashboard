@@ -13,10 +13,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5000") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://api.agrosolutions.site") });
 
 builder.Services.AddScoped<ITelemetryService, TelemetryApiService>();
-builder.Services.AddScoped<IAuthService, AuthServiceMock>();
+builder.Services.AddScoped<IAuthService, AuthService>(); 
 builder.Services.AddScoped<IPropertiesService, PropertiesServiceMock>();
 
 builder.Services.AddAuthorizationCore();
