@@ -13,10 +13,17 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://api.agrosolutions.site") });
+builder.Services.AddTransient<UnauthorizedInterceptor>();
+
+builder.Services.AddHttpClient("AgroAPI", client =>
+{
+    client.BaseAddress = new Uri("http://api.agrosolutions.site");
+}).AddHttpMessageHandler<UnauthorizedInterceptor>();
+
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AgroAPI"));
 
 builder.Services.AddScoped<ITelemetryService, TelemetryApiService>();
-builder.Services.AddScoped<IAuthService, AuthService>(); 
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPropertiesService, PropertiesService>();
 
 builder.Services.AddAuthorizationCore();

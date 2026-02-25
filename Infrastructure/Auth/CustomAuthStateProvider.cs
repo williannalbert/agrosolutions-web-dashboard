@@ -18,12 +18,24 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
-
         var identity = new ClaimsIdentity();
 
         if (!string.IsNullOrEmpty(token))
         {
-            identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+            var claims = ParseClaimsFromJwt(token).ToList();
+            var expClaim = claims.FirstOrDefault(c => c.Type == "exp")?.Value;
+
+            if (expClaim != null)
+            {
+                var expTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim));
+                if (expTime.UtcDateTime <= DateTime.UtcNow)
+                {
+                    await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                    return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+                }
+            }
+
+            identity = new ClaimsIdentity(claims, "jwt");
         }
 
         var user = new ClaimsPrincipal(identity);
