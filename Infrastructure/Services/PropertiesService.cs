@@ -29,8 +29,7 @@ public class PropertiesService : IPropertiesService
     public async Task<List<FazendaDto>> GetFazendasByProdutorAsync(string produtorId)
     {
         await SetAuthorizationHeader();
-        //var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<FazendaDto>>>($"/properties/v1/fazendas/produtor/{produtorId}");
-        var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<FazendaDto>>>($"/properties/v1/fazendas");
+        var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<FazendaDto>>>($"/properties/v1/fazendas/produtor/{produtorId}");
         return response?.Data ?? new List<FazendaDto>();
     }
 

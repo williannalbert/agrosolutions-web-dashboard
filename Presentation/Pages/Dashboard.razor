@@ -183,9 +183,36 @@ else if (dadosAgrupados != null)
     private string[] GetLabels(IEnumerable<Telemetry> dados)
         => dados.OrderBy(x => x.Timestamp).Select(x => x.Timestamp.ToLocalTime().ToString("HH:mm")).ToArray();
 
-    private List<ChartSeries> GetSeriesSolo(IEnumerable<Telemetry> dados) { return new List<ChartSeries> { new ChartSeries { Name = "Umidade", Data = dados.Select(x => x.SoilMoisturePercent ?? 0).ToArray() } }; }
-    private List<ChartSeries> GetSeriesClima(IEnumerable<Telemetry> dados) { return new List<ChartSeries> { new ChartSeries { Name = "Temp", Data = dados.Select(x => x.TempCelsius ?? 0).ToArray() } }; }
-    private List<ChartSeries> GetSeriesSilo(IEnumerable<Telemetry> dados) { return new List<ChartSeries> { new ChartSeries { Name = "CO2", Data = dados.Select(x => x.Co2Ppm ?? 0).ToArray() } }; }
-
+    private List<ChartSeries> GetSeriesSolo(IEnumerable<Telemetry> dados)
+    {
+        return new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Umidade (%)", Data = dados.Select(x => x.SoilMoisturePercent ?? 0).ToArray() },
+            new ChartSeries { Name = "pH", Data = dados.Select(x => x.SoilPh ?? 0).ToArray() },
+            new ChartSeries { Name = "Nitrogênio (N)", Data = dados.Select(x => x.Nitrogen ?? 0).ToArray() },
+            new ChartSeries { Name = "Fósforo (P)", Data = dados.Select(x => x.Phosphorus ?? 0).ToArray() },
+            new ChartSeries { Name = "Potássio (K)", Data = dados.Select(x => x.Potassium ?? 0).ToArray() }
+        };
+    }
+    private List<ChartSeries> GetSeriesClima(IEnumerable<Telemetry> dados)
+    {
+        return new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Temp (°C)", Data = dados.Select(x => x.TempCelsius ?? 0).ToArray() },
+            new ChartSeries { Name = "Umidade (%)", Data = dados.Select(x => x.HumidityPercent ?? 0).ToArray() },
+            new ChartSeries { Name = "Vento (km/h)", Data = dados.Select(x => x.WindSpeedKmh ?? 0).ToArray() },
+            new ChartSeries { Name = "Chuva (mm)", Data = dados.Select(x => x.RainMmLastHour ?? 0).ToArray() },
+            new ChartSeries { Name = "P. Orvalho (°C)", Data = dados.Select(x => x.DewPoint ?? 0).ToArray() }
+        };
+    }
+    private List<ChartSeries> GetSeriesSilo(IEnumerable<Telemetry> dados)
+    {
+        return new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Nível (%)", Data = dados.Select(x => x.FillLevelPercent ?? 0).ToArray() },
+            new ChartSeries { Name = "Temp Média (°C)", Data = dados.Select(x => x.AvgTempCelsius ?? 0).ToArray() },
+            new ChartSeries { Name = "CO2 (ppm)", Data = dados.Select(x => x.Co2Ppm ?? 0).ToArray() }
+        };
+    }
     private Color GetColorByType(string type) => type switch { "solo" => Color.Success, "silo" => Color.Warning, _ => Color.Info };
 }
