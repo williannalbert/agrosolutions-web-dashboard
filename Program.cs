@@ -22,7 +22,7 @@ builder.Services.AddHttpClient("AgroAPI", client =>
 
 builder.Services.AddHttpClient("HistoryAPI", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:8081");
+    client.BaseAddress = new Uri("http://api.agrosolutions.site/");
 }).AddHttpMessageHandler<UnauthorizedInterceptor>();
 
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AgroAPI"));
