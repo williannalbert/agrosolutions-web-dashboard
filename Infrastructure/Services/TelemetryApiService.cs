@@ -1,6 +1,7 @@
 ﻿using AgroSolutions.Identity.Web.Application.DTOs;
 using AgroSolutions.Identity.Web.Application.Interfaces;
 using AgroSolutions.Identity.Web.Domain.Models;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 
@@ -10,11 +11,10 @@ public class TelemetryApiService : ITelemetryService
 {
     private readonly HttpClient _http;
 
-    public TelemetryApiService(HttpClient http)
+    public TelemetryApiService(IHttpClientFactory httpClientFactory)
     {
-        _http = http;
+        _http = httpClientFactory.CreateClient("HistoryAPI");
     }
-
     public async Task<List<Telemetry>> SearchAsync(TelemetryFilter filter)
     {
         try
@@ -31,10 +31,9 @@ public class TelemetryApiService : ITelemetryService
                 queryParams.Add($"type_sensor={filter.SensorType}");
 
             if (filter.StartDate.HasValue)
-                queryParams.Add($"start_date={filter.StartDate.Value:yyyy-MM-ddTHH:mm:ssZ}");
-
+                queryParams.Add($"start_date={Uri.EscapeDataString(filter.StartDate.Value.ToString("yyyy-MM-ddTHH:mm:ssZ"))}");
             if (filter.EndDate.HasValue)
-                queryParams.Add($"end_date={filter.EndDate.Value:yyyy-MM-ddTHH:mm:ssZ}");
+                queryParams.Add($"end_date={Uri.EscapeDataString(filter.EndDate.Value.ToString("yyyy-MM-ddTHH:mm:ssZ"))}");
 
             if (!queryParams.Any()) return new List<Telemetry>();
 
