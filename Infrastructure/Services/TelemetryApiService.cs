@@ -37,7 +37,7 @@ public class TelemetryApiService : ITelemetryService
 
             if (!queryParams.Any()) return new List<Telemetry>();
 
-            var url = $"api/History?{string.Join("&", queryParams)}";
+            var url = $"history/api/History?{string.Join("&", queryParams)}";
             Console.WriteLine($"[TelemetryApiService] GET: {url}");
 
             var jsonArray = await _http.GetFromJsonAsync<JsonNode[]>(url);
