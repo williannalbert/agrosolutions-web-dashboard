@@ -17,7 +17,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://
 
 builder.Services.AddScoped<ITelemetryService, TelemetryApiService>();
 builder.Services.AddScoped<IAuthService, AuthService>(); 
-builder.Services.AddScoped<IPropertiesService, PropertiesServiceMock>();
+builder.Services.AddScoped<IPropertiesService, PropertiesService>();
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();

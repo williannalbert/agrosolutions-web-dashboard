@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
+@using Microsoft.AspNetCore.Components.Authorization
 @using AgroSolutions.Identity.Web.Application.DTOs
 @using AgroSolutions.Identity.Web.Application.Interfaces
 @using AgroSolutions.Identity.Web.Domain.Models
@@ -13,39 +14,28 @@
 <MudPaper Elevation="3" Class="pa-4 mb-4">
     <MudGrid>
         <MudItem xs="12" md="3">
-            <MudSelect T="Guid ?" Label="Fazenda" Variant="Variant.Outlined"
-                       Value="selectedFazendaId" ValueChanged="OnFazendaChanged"
-                       AdornmentIcon="@Icons.Material.Filled.HomeWork"
-                       ToStringFunc="@(id => fazendas.FirstOrDefault(f => f.Id == id)?.Nome)">
+            <MudSelect T="Guid ?" Label="Fazenda" Value="selectedFazendaId" ValueChanged="OnFazendaChanged" Variant="Variant.Outlined">
                 @foreach (var f in fazendas)
                 {
-                    <MudSelectItem Value="@((Guid?)f.Id)">@f.Nome</MudSelectItem>
+                    <MudSelectItem T="Guid ?" Value="f.Id">@f.Nome</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
 
         <MudItem xs="12" md="3">
-            <MudSelect T="Guid ?" Label="Talhão" Variant="Variant.Outlined"
-                       Value="selectedTalhaoId" ValueChanged="OnTalhaoChanged"
-                       Disabled="@(!selectedFazendaId.HasValue)"
-                       AdornmentIcon="@Icons.Material.Filled.Grass"
-                       ToStringFunc="@(id => talhoes.FirstOrDefault(t => t.Id == id)?.Nome)">
+            <MudSelect T="Guid ?" Label="Talhão" Value="selectedTalhaoId" ValueChanged="OnTalhaoChanged" Variant="Variant.Outlined" Disabled="@(!fazendas.Any() || selectedFazendaId == null)">
                 @foreach (var t in talhoes)
                 {
-                    <MudSelectItem Value="@((Guid?)t.Id)">@t.Nome</MudSelectItem>
+                    <MudSelectItem T="Guid ?" Value="t.Id">@t.Nome</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
 
         <MudItem xs="12" md="3">
-            <MudSelect T="string" Label="Sensor (Opcional)" Variant="Variant.Outlined"
-                       @bind-Value="filter.SensorId"
-                       Disabled="@(!selectedTalhaoId.HasValue)"
-                       Clearable="true"
-                       AdornmentIcon="@Icons.Material.Filled.Sensors">
+            <MudSelect T="string" Label="Sensor" Value="filter.SensorId" ValueChanged="OnSensorChanged" Variant="Variant.Outlined" Disabled="@(!talhoes.Any() || selectedTalhaoId == null)" Clearable="true">
                 @foreach (var s in sensores)
                 {
-                    <MudSelectItem Value="@s.Id.ToString()">@s.Identificador (@s.TipoSensor)</MudSelectItem>
+                    <MudSelectItem T="string" Value="@s.Id.ToString()">@s.Identificador</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
@@ -74,7 +64,6 @@ else if (dadosAgrupados != null)
         var sensorId = grupoSensor.Key;
         var primeiraLeitura = grupoSensor.First();
         var tipoSensor = primeiraLeitura.Type?.ToLower() ?? "desconhecido";
-        // Busca nome bonito do sensor na lista carregada
         var nomeSensor = sensores.FirstOrDefault(s => s.Id.ToString() == sensorId)?.Identificador ?? sensorId;
 
         <MudCard Class="mb-4" Elevation="4">
@@ -105,8 +94,10 @@ else if (dadosAgrupados != null)
     }
 }
 
-
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthState { get; set; } = default!;
+
     private TelemetryFilter filter = new();
     private DateRange dateRange = new DateRange(DateTime.Now.AddDays(-1), DateTime.Now);
     private bool loading = false;
@@ -121,16 +112,25 @@ else if (dadosAgrupados != null)
 
     protected override async Task OnInitializedAsync()
     {
-        fazendas = await PropertiesService.GetFazendasByProdutorAsync();
+        var authState = await AuthState;
+        var user = authState.User;
+        var produtorId = user.FindFirst("sub")?.Value ?? user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(produtorId))
+        {
+            fazendas = await PropertiesService.GetFazendasByProdutorAsync(produtorId);
+        }
     }
 
     private async Task OnFazendaChanged(Guid? novaFazendaId)
     {
         selectedFazendaId = novaFazendaId;
-        selectedTalhaoId = null; 
-        filter.SensorId = null; 
+        selectedTalhaoId = null;
+        filter.FieldId = null;
+        filter.SensorId = null;
         talhoes.Clear();
         sensores.Clear();
+        dadosAgrupados = null;
 
         if (novaFazendaId.HasValue)
         {
@@ -141,15 +141,20 @@ else if (dadosAgrupados != null)
     private async Task OnTalhaoChanged(Guid? novoTalhaoId)
     {
         selectedTalhaoId = novoTalhaoId;
-        filter.SensorId = null; 
+        filter.FieldId = novoTalhaoId?.ToString();
+        filter.SensorId = null;
         sensores.Clear();
+        dadosAgrupados = null;
 
         if (novoTalhaoId.HasValue)
         {
             sensores = await PropertiesService.GetSensoresByTalhaoAsync(novoTalhaoId.Value);
-
-            filter.FieldId = novoTalhaoId.Value.ToString();
         }
+    }
+
+    private void OnSensorChanged(string? novoSensorId)
+    {
+        filter.SensorId = novoSensorId;
     }
 
     private async Task BuscarDados()
@@ -180,7 +185,7 @@ else if (dadosAgrupados != null)
 
     private List<ChartSeries> GetSeriesSolo(IEnumerable<Telemetry> dados) { return new List<ChartSeries> { new ChartSeries { Name = "Umidade", Data = dados.Select(x => x.SoilMoisturePercent ?? 0).ToArray() } }; }
     private List<ChartSeries> GetSeriesClima(IEnumerable<Telemetry> dados) { return new List<ChartSeries> { new ChartSeries { Name = "Temp", Data = dados.Select(x => x.TempCelsius ?? 0).ToArray() } }; }
-    private List<ChartSeries> GetSeriesSilo(IEnumerable<Telemetry> dados) {  return new List<ChartSeries> { new ChartSeries { Name = "CO2", Data = dados.Select(x => x.Co2Ppm ?? 0).ToArray() } }; }
+    private List<ChartSeries> GetSeriesSilo(IEnumerable<Telemetry> dados) { return new List<ChartSeries> { new ChartSeries { Name = "CO2", Data = dados.Select(x => x.Co2Ppm ?? 0).ToArray() } }; }
 
     private Color GetColorByType(string type) => type switch { "solo" => Color.Success, "silo" => Color.Warning, _ => Color.Info };
 }

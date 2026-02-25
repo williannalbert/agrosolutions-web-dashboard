@@ -1,4 +1,6 @@
-﻿namespace AgroSolutions.Identity.Web.Application.DTOs;
+﻿using System.Text.Json.Serialization;
+
+namespace AgroSolutions.Identity.Web.Application.DTOs;
 
 public class FazendaDto
 {
@@ -19,7 +21,9 @@ public class TalhaoDto
 public class SensorDto
 {
     public Guid Id { get; set; }
-    public string Identificador { get; set; } = string.Empty; 
-    public string TipoSensor { get; set; } = string.Empty; 
+    [JsonPropertyName("codigoIdentificacao")]
+    public string Identificador { get; set; } = string.Empty;
+    [JsonPropertyName("tipo")]
+    public string TipoSensor { get; set; } = string.Empty;
     public Guid TalhaoId { get; set; }
 }
