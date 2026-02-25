@@ -51,3 +51,4 @@ jobs:
         kubectl get namespace dashboard-context || kubectl create namespace dashboard-context
         envsubst < k8s/deployment.yaml | kubectl apply -f -
         kubectl apply -f k8s/service.yaml
+        kubectl apply -f k8s/ingress.yaml
