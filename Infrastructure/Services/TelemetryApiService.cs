@@ -66,26 +66,47 @@ public class TelemetryApiService : ITelemetryService
                 t.SensorId = GetString(item, "sensorId");
                 t.Timestamp = item["timestamp"]?.GetValue<DateTime>() ?? DateTime.MinValue;
                 t.FieldId = item["fieldId"]?.GetValue<Guid>() ?? Guid.Empty;
-                t.Type = GetString(item, "sensorTypeDescription", "type", "sensorType").ToLower();
-                t.Email = GetString(item, "email");
+
+                t.Type = GetString(item, "sensorTypeDescription").ToLower();
 
                 var data = item["data"];
                 if (data != null)
                 {
-                    t.SoilMoisturePercent = GetDouble(data, "soilMoisturePercent");
-                    t.SoilPh = GetDouble(data, "soilPh");
-                    t.Nitrogen = GetDouble(data["nutrients"], "nitrogen"); 
+                    if (t.Type == "solo")
+                    {
+                        t.SoilMoisturePercent = GetDouble(data, "soilMoisturePercent");
+                        t.SoilPh = GetDouble(data, "soilPh");
 
-                    t.TempCelsius = GetDouble(data, "tempCelsius") ?? GetDouble(data, "temperatura"); 
-                    t.RainMmLastHour = GetDouble(data, "rainMmLastHour");
-                    t.HumidityPercent = GetDouble(data, "humidityPercent");
-
-                    t.Co2Ppm = GetDouble(data, "co2Ppm");
-                    t.FillLevelPercent = GetDouble(data, "fillLevelPercent");
+                        var nutrients = data["nutrients"];
+                        if (nutrients != null)
+                        {
+                            t.Nitrogen = GetDouble(nutrients, "nitrogenMgKg");
+                            t.Phosphorus = GetDouble(nutrients, "phosphorusMgKg");
+                            t.Potassium = GetDouble(nutrients, "potassiumMgKg");
+                        }
+                    }
+                    else if (t.Type == "meteorologica")
+                    {
+                        t.TempCelsius = GetDouble(data, "tempCelsius");
+                        t.HumidityPercent = GetDouble(data, "humidityPercent");
+                        t.WindSpeedKmh = GetDouble(data, "windSpeedKmh");
+                        t.WindDirection = GetString(data, "windDirection");
+                        t.RainMmLastHour = GetDouble(data, "rainMmLastHour");
+                        t.DewPoint = GetDouble(data, "dewPoint");
+                    }
+                    else if (t.Type == "silo")
+                    {
+                        t.FillLevelPercent = GetDouble(data, "fillLevelPercent");
+                        t.AvgTempCelsius = GetDouble(data, "avgTempCelsius");
+                        t.Co2Ppm = GetDouble(data, "co2Ppm");
+                    }
                 }
                 result.Add(t);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERRO PARSE]: {ex.Message}");
+            }
         }
         return result.OrderBy(x => x.Timestamp).ToList();
     }
